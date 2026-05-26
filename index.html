@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>음표쉼표 덧셈뺄셈 자동생성기</title>
+  <style>
+    :root {
+      --bg: #f5f1ea;
+      --panel: #ffffff;
+      --gray: #777777;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --pink: #f9a8d4;
+      --pink-light: #fce7f3;
+      --yellow: #fef3c7;
+      --green: #10b981;
+      --blue: #3b82f6;
+      --orange: #f97316;
+      --purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Pretendard, "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", Arial, sans-serif;
+      word-break: keep-all;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      width: 310px;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+
+    .small-title {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 0 4px;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 18px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .section {
+      background: #f9fafb;
+      border: 1px solid #f1f5f9;
+      border-radius: 18px;
+      padding: 13px;
+      margin-bottom: 14px;
+    }
+
+    .section h3 {
+      margin: 0 0 9px;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .check-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border-radius: 12px;
+      padding: 7px 8px;
+      margin-bottom: 6px;
+    }
+
+    .check-row span:last-child {
+      font-size: 12px;
+      color: #9ca3af;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-title {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 13px 14px;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    .btn-blue { background: var(--blue); }
+    .btn-green { background: var(--green); }
+    .btn-orange { background: var(--orange); }
+    .btn-purple { background: var(--purple); }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      background: var(--gray);
+      border-radius: 28px;
+      padding: 28px;
+      overflow: auto;
+    }
+
+    .status {
+      background: rgba(255,255,255,0.94);
+      border-radius: 18px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #374151;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .sheet {
+      width: 794px;
+      min-height: 1120px;
+      margin: 0 auto;
+      background: white;
+      padding: 42px 48px;
+      box-shadow: 0 18px 44px rgba(0,0,0,0.24);
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .symbol-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #d1fae5;
+      color: #047857;
+      font-weight: 900;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .sheet-title {
+      margin: 0;
+      font-size: 31px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1.18;
+    }
+
+    .sheet-subtitle {
+      margin: 8px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .name-box {
+      width: 210px;
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .blank {
+      flex: 1;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--yellow);
+    }
+
+    .problems {
+      display: grid;
+      gap: 12px;
+    }
+
+    .problems.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .problems.cols-1 {
+      grid-template-columns: 1fr;
+    }
+
+    .problem {
+      position: relative;
+      min-height: 84px;
+      border: 2px dashed #fbcfe8;
+      border-radius: 18px;
+      background: white;
+      padding: 10px 12px;
+    }
+
+    .problem.compact {
+      min-height: 72px;
+      padding: 7px 10px;
+    }
+
+    .number {
+      position: absolute;
+      left: -9px;
+      top: -9px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: var(--pink-light);
+      color: #be185d;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .equation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 62px;
+    }
+
+    .op {
+      font-size: 26px;
+      font-weight: 900;
+      color: #374151;
+      line-height: 1;
+    }
+
+    .answer-blank {
+      min-width: 78px;
+      height: 48px;
+      border-radius: 999px;
+      background: var(--yellow);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .answer {
+      min-width: 78px;
+      min-height: 46px;
+      border-radius: 13px;
+      background: var(--yellow);
+      color: #b45309;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      font-size: 16px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .hint {
+      margin-top: 0;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 10px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 1px solid #fef3c7;
+      color: #9ca3af;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    svg.music {
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .music path,
+    .music line,
+    .music ellipse,
+    .music circle,
+    .music rect {
+      vector-effect: non-scaling-stroke;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+      }
+
+      .sheet {
+        transform: scale(0.82);
+        transform-origin: top left;
+      }
+
+      .main {
+        min-height: 960px;
+      }
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
+
+      body * {
+        visibility: hidden;
+        font-family: Pretendard, "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", Arial, sans-serif !important;
+      }
+
+      .print-area,
+      .print-area * {
+        visibility: visible;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .app {
+        display: block;
+        margin: 0;
+        padding: 0;
+        width: 210mm;
+        max-width: none;
+      }
+
+      .main {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 0;
+        background: white !important;
+        border-radius: 0;
+        overflow: visible;
+      }
+
+      .sheet {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 11mm 12mm;
+        box-shadow: none !important;
+        transform: none !important;
+        page-break-after: always;
+      }
+
+      button {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar no-print">
+      <p class="small-title">교사용 자동 문제지 생성기</p>
+      <h2>설정</h2>
+
+      <div class="field">
+        <span class="field-title">문제지 제목</span>
+        <input id="titleInput" type="text" value="음표쉼표 덧셈뺄셈" />
+      </div>
+
+      <section class="section">
+        <h3>문제 유형</h3>
+        <label class="option"><input type="radio" name="typeMode" value="note" /> 음표</label>
+        <label class="option"><input type="radio" name="typeMode" value="rest" /> 쉼표</label>
+        <label class="option"><input type="radio" name="typeMode" value="mixed" checked /> 혼합</label>
+      </section>
+
+      <section class="section">
+        <h3>계산 방식</h3>
+        <label class="option"><input type="radio" name="opMode" value="add" /> 덧셈</label>
+        <label class="option"><input type="radio" name="opMode" value="sub" /> 뺄셈</label>
+        <label class="option"><input type="radio" name="opMode" value="mixed" checked /> 덧셈 + 뺄셈</label>
+      </section>
+
+      <section class="section">
+        <h3>사용할 음가</h3>
+        <label class="check-row"><span><input type="checkbox" class="note-check" value="whole" checked /> 온음표 / 온쉼표</span><span>4박</span></label>
+        <label class="check-row"><span><input type="checkbox" class="note-check" value="half" checked /> 2분음표 / 2분쉼표</span><span>2박</span></label>
+        <label class="check-row"><span><input type="checkbox" class="note-check" value="quarter" checked /> 4분음표 / 4분쉼표</span><span>1박</span></label>
+        <label class="check-row"><span><input type="checkbox" class="note-check" value="eighth" checked /> 8분음표 / 8분쉼표</span><span>1/2박</span></label>
+        <label class="check-row"><span><input type="checkbox" class="note-check" value="sixteenth" checked /> 16분음표 / 16분쉼표</span><span>1/4박</span></label>
+      </section>
+
+      <section class="section">
+        <h3>문항·난이도</h3>
+        <div class="field">
+          <span class="field-title">문항 수</span>
+          <input id="countInput" type="number" min="4" max="30" value="16" />
+        </div>
+        <div class="field">
+          <span class="field-title">정답 최대 박</span>
+          <select id="maxAnswerSelect">
+            <option value="1">1박 이하</option>
+            <option value="2">2박 이하</option>
+            <option value="3">3박 이하</option>
+            <option value="4" selected>4박 이하</option>
+            <option value="6">6박 이하</option>
+            <option value="8">8박 이하</option>
+          </select>
+        </div>
+        <label class="option"><input id="allowZeroInput" type="checkbox" /> 뺄셈 정답 0박 허용</label>
+      </section>
+
+      <section class="section">
+        <h3>출력 옵션</h3>
+        <label class="option"><input id="showAnswerInput" type="checkbox" /> 정답 보이기</label>
+        <label class="option"><input id="includeNameInput" type="checkbox" checked /> 이름·날짜 칸 표시</label>
+        <div class="field">
+          <span class="field-title">배치</span>
+          <select id="columnsSelect">
+            <option value="2" selected>2열</option>
+            <option value="1">1열</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="button-stack">
+        <button class="btn-blue" id="generateButton">문제 새로 생성</button>
+        <button class="btn-green" id="printProblemButton">문제지 인쇄</button>
+        <button class="btn-orange" id="printAnswerButton">정답지 인쇄</button>
+        <button class="btn-purple" id="toggleAnswerButton">문제지 / 정답지 전환</button>
+      </div>
+    </aside>
+
+    <main class="main print-area">
+      <div class="status no-print" id="statusBox"></div>
+      <section class="sheet" id="sheet"></section>
+    </main>
+  </div>
+
+  <script>
+    const NOTE_TYPES = [
+      { id: "whole", label: "온음표", restLabel: "온쉼표", value: 4, short: "4박" },
+      { id: "half", label: "2분음표", restLabel: "2분쉼표", value: 2, short: "2박" },
+      { id: "quarter", label: "4분음표", restLabel: "4분쉼표", value: 1, short: "1박" },
+      { id: "eighth", label: "8분음표", restLabel: "8분쉼표", value: 0.5, short: "1/2박" },
+      { id: "sixteenth", label: "16분음표", restLabel: "16분쉼표", value: 0.25, short: "1/4박" }
+    ];
+
+    const TYPE_LABELS = {
+      note: "음표",
+      rest: "쉼표",
+      mixed: "혼합"
+    };
+
+    const OP_LABELS = {
+      add: "덧셈",
+      sub: "뺄셈",
+      mixed: "덧셈 + 뺄셈"
+    };
+
+    let problems = [];
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function valueLabel(value) {
+      if (value === 4) return "4박";
+      if (value === 3) return "3박";
+      if (value === 2) return "2박";
+      if (value === 1) return "1박";
+      if (value === 0.75) return "3/4박";
+      if (value === 0.5) return "1/2박";
+      if (value === 0.25) return "1/4박";
+      if (value === 0) return "0박";
+
+      const whole = Math.floor(value);
+      const fraction = Number((value - whole).toFixed(2));
+      const frac = fraction === 0.75 ? "3/4" : fraction === 0.5 ? "1/2" : fraction === 0.25 ? "1/4" : "";
+      if (whole && frac) return whole + " " + frac + "박";
+      return value + "박";
+    }
+
+    function getSettings() {
+      const typeMode = document.querySelector('input[name="typeMode"]:checked').value;
+      const opMode = document.querySelector('input[name="opMode"]:checked').value;
+      const checked = Array.from(document.querySelectorAll(".note-check:checked")).map((el) => el.value);
+
+      if (checked.length === 0) {
+        document.querySelector(".note-check").checked = true;
+        checked.push("whole");
+      }
+
+      return {
+        title: document.getElementById("titleInput").value.trim() || "음표쉼표 덧셈뺄셈",
+        typeMode,
+        opMode,
+        allowedIds: checked,
+        count: Math.max(4, Math.min(30, Number(document.getElementById("countInput").value) || 16)),
+        maxAnswer: Number(document.getElementById("maxAnswerSelect").value),
+        allowZero: document.getElementById("allowZeroInput").checked,
+        showAnswer: document.getElementById("showAnswerInput").checked,
+        includeName: document.getElementById("includeNameInput").checked,
+        columns: Number(document.getElementById("columnsSelect").value)
+      };
+    }
+
+    function generateProblems(settings) {
+      const source = NOTE_TYPES.filter((note) => settings.allowedIds.includes(note.id));
+      const results = [];
+      let guard = 0;
+
+      while (results.length < settings.count && guard < settings.count * 300) {
+        guard += 1;
+
+        let left = pick(source);
+        let right = pick(source);
+        const op = settings.opMode === "mixed" ? pick(["add", "sub"]) : settings.opMode;
+
+        if (op === "sub" && left.value < right.value) {
+          const temp = left;
+          left = right;
+          right = temp;
+        }
+
+        const answer = op === "add" ? left.value + right.value : left.value - right.value;
+
+        if (answer > settings.maxAnswer) continue;
+        if (!settings.allowZero && answer === 0) continue;
+
+        const kind = () => settings.typeMode === "mixed" ? pick(["note", "rest"]) : settings.typeMode;
+
+        results.push({
+          id: Date.now() + "-" + results.length + "-" + Math.random(),
+          left,
+          right,
+          op,
+          answer,
+          leftKind: kind(),
+          rightKind: kind()
+        });
+      }
+
+      return results;
+    }
+
+    function musicGlyph(kind, type, size) {
+      const w = size || 56;
+      const h = size || 56;
+
+      if (kind === "rest") {
+        if (type.id === "whole") {
+          return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.restLabel + '"><line x1="14" y1="26" x2="66" y2="26" stroke="#111827" stroke-width="3"/><rect x="29" y="28" width="22" height="12" rx="1" fill="#111827"/></svg>';
+        }
+        if (type.id === "half") {
+          return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.restLabel + '"><line x1="14" y1="42" x2="66" y2="42" stroke="#111827" stroke-width="3"/><rect x="29" y="30" width="22" height="12" rx="1" fill="#111827"/></svg>';
+        }
+        if (type.id === "quarter") {
+          return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.restLabel + '"><path d="M43 10 C30 22 48 28 35 42 C48 42 51 54 35 70" fill="none" stroke="#111827" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+        if (type.id === "eighth") {
+          return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.restLabel + '"><circle cx="31" cy="26" r="8" fill="#111827"/><path d="M40 22 L55 22 L34 68" fill="none" stroke="#111827" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+        return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.restLabel + '"><circle cx="27" cy="24" r="7" fill="#111827"/><circle cx="38" cy="38" r="7" fill="#111827"/><path d="M43 22 L58 22 L35 70" fill="none" stroke="#111827" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      }
+
+      if (type.id === "whole") {
+        return '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.label + '"><ellipse cx="40" cy="46" rx="20" ry="12" fill="none" stroke="#111827" stroke-width="6" transform="rotate(-18 40 46)"/></svg>';
+      }
+
+      const hollow = type.id === "half";
+      const flagCount = type.id === "sixteenth" ? 2 : type.id === "eighth" ? 1 : 0;
+      let svg = '<svg class="music" viewBox="0 0 80 80" width="' + w + '" height="' + h + '" aria-label="' + type.label + '">';
+      svg += '<ellipse cx="30" cy="56" rx="14" ry="10" fill="' + (hollow ? "white" : "#111827") + '" stroke="#111827" stroke-width="5" transform="rotate(-20 30 56)"/>';
+      svg += '<line x1="43" y1="53" x2="43" y2="12" stroke="#111827" stroke-width="5" stroke-linecap="round"/>';
+      if (flagCount >= 1) svg += '<path d="M43 12 C62 18 62 31 45 34" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round"/>';
+      if (flagCount >= 2) svg += '<path d="M43 25 C61 31 60 43 45 46" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round"/>';
+      svg += '</svg>';
+      return svg;
+    }
+
+    function renderProblem(problem, index, showAnswer, compact) {
+      const size = compact ? 48 : 56;
+      const op = problem.op === "add" ? "+" : "−";
+      const answer = showAnswer
+        ? '<div class="answer">' + valueLabel(problem.answer) + '</div>'
+        : '<div class="answer-blank"></div>';
+
+      const hint = showAnswer
+        ? '<div class="hint">' + problem.left.short + ' ' + op + ' ' + problem.right.short + '</div>'
+        : '';
+
+      return [
+        '<div class="problem ' + (compact ? "compact" : "") + '">',
+        '<div class="number">' + (index + 1) + '</div>',
+        '<div class="equation">',
+        musicGlyph(problem.leftKind, problem.left, size),
+        '<span class="op">' + op + '</span>',
+        musicGlyph(problem.rightKind, problem.right, size),
+        '<span class="op">=</span>',
+        answer,
+        '</div>',
+        hint,
+        '</div>'
+      ].join("");
+    }
+
+    function render() {
+      const settings = getSettings();
+      const sheet = document.getElementById("sheet");
+      const status = document.getElementById("statusBox");
+
+      const selectedLabels = NOTE_TYPES
+        .filter((note) => settings.allowedIds.includes(note.id))
+        .map((note) => note.label.replace("음표", ""))
+        .join(", ");
+
+      status.innerHTML = '현재 설정: <b>' + TYPE_LABELS[settings.typeMode] + '</b> · <b>' + OP_LABELS[settings.opMode] + '</b> · ' + selectedLabels + ' · ' + settings.count + '문항';
+
+      const title = settings.showAnswer ? settings.title + " 정답" : settings.title;
+      const subtitle = settings.showAnswer
+        ? "정답 확인용 페이지"
+        : "음표와 쉼표의 길이를 더하거나 빼서 박자를 계산해 봅시다.";
+
+      let header = '<div class="sheet-header">';
+      header += '<div><div class="symbol-badge">음</div><h1 class="sheet-title">' + escapeHtml(title) + '</h1><p class="sheet-subtitle">' + subtitle + '</p></div>';
+
+      if (settings.includeName) {
+        header += '<div class="name-box">';
+        header += '<div class="name-row">이름: <span class="blank"></span></div>';
+        header += '<div class="name-row">날짜: <span class="blank"></span></div>';
+        header += '</div>';
+      }
+
+      header += '</div>';
+
+      const compact = problems.length > 18;
+      const body = '<div class="problems cols-' + settings.columns + '">' +
+        problems.map((problem, index) => renderProblem(problem, index, settings.showAnswer, compact)).join("") +
+        '</div>';
+
+      const footer = '<div class="footer">음표·쉼표의 길이를 계산해 보세요. 4분음표 = 1박 기준</div>';
+
+      sheet.innerHTML = header + body + footer;
+    }
+
+    function regenerate() {
+      const settings = getSettings();
+      document.getElementById("countInput").value = settings.count;
+      problems = generateProblems(settings);
+      render();
+    }
+
+    function printWithAnswerMode(showAnswer) {
+      document.getElementById("showAnswerInput").checked = showAnswer;
+      render();
+      setTimeout(() => window.print(), 180);
+    }
+
+    document.getElementById("generateButton").addEventListener("click", regenerate);
+    document.getElementById("printProblemButton").addEventListener("click", () => printWithAnswerMode(false));
+    document.getElementById("printAnswerButton").addEventListener("click", () => printWithAnswerMode(true));
+    document.getElementById("toggleAnswerButton").addEventListener("click", () => {
+      const input = document.getElementById("showAnswerInput");
+      input.checked = !input.checked;
+      render();
+    });
+
+    document.querySelectorAll("input, select").forEach((el) => {
+      el.addEventListener("change", render);
+      el.addEventListener("input", render);
+    });
+
+    regenerate();
+  </script>
+</body>
+</html>
